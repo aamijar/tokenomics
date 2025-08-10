@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Credits Swap</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/tokens.css">
+</head>
+<body>
+    <main class="app">
+        <div class="container">
+            <header class="header">
+                <h1 class="title">Swap anytime,<br>anywhere.</h1>
+            </header>
+            
+            <div class="swap-card">
+                <div class="swap-section sell-section">
+                    <label class="section-label">Sell</label>
+                    <div class="input-group">
+                        <input type="number" class="amount-input" id="sellAmount" placeholder="0" step="0.01" min="0">
+                        <div class="token-selector" id="sellTokenSelector">
+                            <div class="selected-token">
+                                <img src="assets/logos/openai.png" alt="OpenAI" class="token-logo" id="sellTokenLogo">
+                                <span class="token-name" id="sellTokenName">GPT</span>
+                                <svg class="chevron-down" width="12" height="8" viewBox="0 0 12 8" fill="none">
+                                    <path d="M1 1L6 6L11 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="token-dropdown" id="sellTokenDropdown">
+                                <!-- Token options will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="balance">$<span id="sellValue">0</span></div>
+                </div>
+                
+                <button class="swap-direction-btn" id="swapDirectionBtn" aria-label="Swap direction">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 2V14M8 14L12 10M8 14L4 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                
+                <div class="swap-section buy-section">
+                    <label class="section-label">Buy</label>
+                    <div class="input-group">
+                        <input type="number" class="amount-input" id="buyAmount" placeholder="0" step="0.01" min="0" readonly>
+                        <div class="token-selector" id="buyTokenSelector">
+                            <div class="selected-token">
+                                <div class="token-placeholder">
+                                    <span class="select-token-text">Select token</span>
+                                    <svg class="chevron-down" width="12" height="8" viewBox="0 0 12 8" fill="none">
+                                        <path d="M1 1L6 6L11 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="token-dropdown" id="buyTokenDropdown">
+                                <!-- Token options will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="get-started-btn" id="getStartedBtn">
+                    Get started
+                </button>
+            </div>
+            
+            <footer class="footer">
+                <p class="footer-text">
+                    Buy and sell API credits on 13+ providers including<br>
+                    OpenAI, Anthropic, Google, xAI, and more.
+                </p>
+            </footer>
+        </div>
+    </main>
+    
+    <script src="scripts/tokens.js"></script>
+    <script src="scripts/swap.js"></script>
+    <script src="scripts/main.js"></script>
+</body>
+</html>
