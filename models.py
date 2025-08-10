@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Enum, Date
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Enum, Date, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -111,3 +111,15 @@ class ConversionRate(Base):
     volume_24h = Column(Float, default=0.0, nullable=False)
     spread_percentage = Column(Float, nullable=True)
     last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+class SellerApiKey(Base):
+    __tablename__ = "seller_api_keys"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    token_type = Column(Enum(TokenType), nullable=False)
+    encrypted_api_key = Column(String, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    user = relationship("User")

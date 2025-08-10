@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from models import TransactionHistory, BalanceSnapshot, Token, User, TokenType, TransactionType
 from datetime import datetime, date
+from typing import Optional
 import logging
 
 logger = logging.getLogger(__name__)
@@ -16,8 +17,8 @@ class TransactionService:
         balance_before: float,
         balance_after: float,
         db: Session,
-        related_trade_id: int = None,
-        description: str = None
+        related_trade_id: Optional[int] = None,
+        description: Optional[str] = None
     ) -> TransactionHistory:
         """Log a transaction to the transaction history"""
         transaction = TransactionHistory(
@@ -46,8 +47,8 @@ class TransactionService:
         amount_change: float,
         transaction_type: TransactionType,
         db: Session,
-        related_trade_id: int = None,
-        description: str = None
+        related_trade_id: Optional[int] = None,
+        description: Optional[str] = None
     ) -> Token:
         """Update token balance and log the transaction"""
         token = db.query(Token).filter(
@@ -121,7 +122,7 @@ class TransactionService:
     def get_user_transaction_history(
         user_id: int,
         db: Session,
-        token_type: TokenType = None,
+        token_type: Optional[TokenType] = None,
         limit: int = 100
     ) -> list[TransactionHistory]:
         """Get transaction history for a user"""
@@ -138,7 +139,7 @@ class TransactionService:
     def get_user_balance_history(
         user_id: int,
         db: Session,
-        token_type: TokenType = None,
+        token_type: Optional[TokenType] = None,
         days: int = 30
     ) -> list[BalanceSnapshot]:
         """Get balance history for a user"""
