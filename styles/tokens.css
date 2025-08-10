@@ -1,0 +1,240 @@
+/* Token-specific styling and branding */
+
+/* Token logo general styling */
+.token-logo {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    object-fit: contain;
+    background: #ffffff;
+}
+
+/* OpenAI - GPT */
+.token-gpt .token-name {
+    color: #ffffff;
+}
+
+/* Anthropic - Claude */
+.token-clu .token-name {
+    color: #C15F3C;
+}
+
+/* Google - Gemini */
+.token-gem .token-name {
+    color: #4285F4;
+}
+
+/* Meta - Llama */
+.token-lla .token-name {
+    color: #1877F2;
+}
+
+/* Groq */
+.token-groq .token-name {
+    color: #FF6B35;
+}
+
+/* Cohere */
+.token-coh .token-name {
+    color: #39C5BB;
+}
+
+/* Mistral */
+.token-mis .token-name {
+    color: #FF7000;
+}
+
+/* Hugging Face */
+.token-hf .token-name {
+    color: #FFD21E;
+}
+
+/* xAI */
+.token-xai .token-name {
+    color: #000000;
+}
+
+/* Perplexity */
+.token-ppx .token-name {
+    color: #20B2AA;
+}
+
+/* Together AI */
+.token-tog .token-name {
+    color: #6366F1;
+}
+
+/* Replicate */
+.token-rep .token-name {
+    color: #000000;
+}
+
+/* Fireworks AI */
+.token-fws .token-name {
+    color: #FF4500;
+}
+
+
+/* Hover effects for token options */
+.token-option.token-gpt:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.token-option.token-clu:hover {
+    background: rgba(193, 95, 60, 0.1);
+}
+
+.token-option.token-gem:hover {
+    background: rgba(66, 133, 244, 0.1);
+}
+
+.token-option.token-lla:hover {
+    background: rgba(24, 119, 242, 0.1);
+}
+
+.token-option.token-groq:hover {
+    background: rgba(255, 107, 53, 0.1);
+}
+
+.token-option.token-coh:hover {
+    background: rgba(57, 197, 187, 0.1);
+}
+
+.token-option.token-mis:hover {
+    background: rgba(255, 112, 0, 0.1);
+}
+
+.token-option.token-hf:hover {
+    background: rgba(255, 210, 30, 0.1);
+}
+
+.token-option.token-xai:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.token-option.token-ppx:hover {
+    background: rgba(32, 178, 170, 0.1);
+}
+
+.token-option.token-tog:hover {
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.token-option.token-rep:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.token-option.token-fws:hover {
+    background: rgba(255, 69, 0, 0.1);
+}
+
+/* Selected token highlighting */
+.token-selector .selected-token.token-gpt {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.token-selector .selected-token.token-clu {
+    border-color: rgba(193, 95, 60, 0.4);
+}
+
+.token-selector .selected-token.token-gem {
+    border-color: rgba(66, 133, 244, 0.4);
+}
+
+.token-selector .selected-token.token-lla {
+    border-color: rgba(24, 119, 242, 0.4);
+}
+
+.token-selector .selected-token.token-groq {
+    border-color: rgba(255, 107, 53, 0.4);
+}
+
+.token-selector .selected-token.token-coh {
+    border-color: rgba(57, 197, 187, 0.4);
+}
+
+.token-selector .selected-token.token-mis {
+    border-color: rgba(255, 112, 0, 0.4);
+}
+
+.token-selector .selected-token.token-hf {
+    border-color: rgba(255, 210, 30, 0.4);
+}
+
+.token-selector .selected-token.token-xai {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.token-selector .selected-token.token-ppx {
+    border-color: rgba(32, 178, 170, 0.4);
+}
+
+.token-selector .selected-token.token-tog {
+    border-color: rgba(99, 102, 241, 0.4);
+}
+
+.token-selector .selected-token.token-rep {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.token-selector .selected-token.token-fws {
+    border-color: rgba(255, 69, 0, 0.4);
+}
+
+/* Animation effects */
+@keyframes tokenPulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+.token-logo {
+    animation: tokenPulse 3s ease-in-out infinite;
+}
+
+.token-option:hover .token-logo {
+    animation: none;
+    transform: scale(1.1);
+    transition: transform var(--transition-fast);
+}
+
+/* Company-specific gradient overlays for cards */
+.swap-section.token-context-gpt {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.05) 0%, transparent 100%);
+}
+
+.swap-section.token-context-clu {
+    background: linear-gradient(135deg, rgba(193, 95, 60, 0.05) 0%, transparent 100%);
+}
+
+.swap-section.token-context-gem {
+    background: linear-gradient(135deg, rgba(66, 133, 244, 0.05) 0%, transparent 100%);
+}
+
+.swap-section.token-context-lla {
+    background: linear-gradient(135deg, rgba(24, 119, 242, 0.05) 0%, transparent 100%);
+}
+
+.swap-section.token-context-groq {
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.05) 0%, transparent 100%);
+}
+
+.swap-section.token-context-coh {
+    background: linear-gradient(135deg, rgba(57, 197, 187, 0.05) 0%, transparent 100%);
+}
+
+.swap-section.token-context-mis {
+    background: linear-gradient(135deg, rgba(255, 112, 0, 0.05) 0%, transparent 100%);
+}
+
+.swap-section.token-context-hf {
+    background: linear-gradient(135deg, rgba(255, 210, 30, 0.05) 0%, transparent 100%);
+}
+
+.swap-section.token-context-xai {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.05) 0%, transparent 100%);
+}
