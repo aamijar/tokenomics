@@ -5,6 +5,7 @@ from database import get_db
 from models import User, Token
 from schemas import TokenBalance
 from auth import get_current_user
+from services import TransactionService
 
 router = APIRouter(prefix="/api/user", tags=["users"])
 
@@ -13,6 +14,8 @@ def get_user_balance(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    TransactionService.create_daily_balance_snapshot(current_user.id, db)
+    
     tokens = db.query(Token).filter(Token.user_id == current_user.id).all()
     
     return [

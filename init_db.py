@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
 from database import engine, SessionLocal, Base
-from models import User, Token, MarketPrice, TokenType
+from models import User, Token, MarketPrice, TokenType, ConversionRate, TransactionType
 from auth import get_password_hash
+from services import ConversionService
 import random
 
 def create_tables():
@@ -45,6 +46,15 @@ def seed_data():
             db.add(price)
         
         db.commit()
+        
+        for from_token in TokenType:
+            for to_token in TokenType:
+                if from_token != to_token:
+                    try:
+                        ConversionService.get_or_create_conversion_rate(from_token, to_token, db)
+                    except Exception as e:
+                        print(f"Error creating conversion rate {from_token.value} -> {to_token.value}: {e}")
+        
         print("Database seeded successfully")
         
     finally:

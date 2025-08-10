@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Enum, Date
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -15,6 +15,13 @@ class TradeStatus(enum.Enum):
     ACTIVE = "active"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
+
+class TransactionType(enum.Enum):
+    TRADE_SEND = "trade_send"
+    TRADE_RECEIVE = "trade_receive"
+    DEPOSIT = "deposit"
+    WITHDRAWAL = "withdrawal"
+    INITIAL_BALANCE = "initial_balance"
 
 class User(Base):
     __tablename__ = "users"
@@ -62,4 +69,45 @@ class MarketPrice(Base):
     token_type = Column(Enum(TokenType), unique=True, nullable=False)
     price_btc = Column(Float, nullable=False)
     price_usd = Column(Float, nullable=False)
+    last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+class TransactionHistory(Base):
+    __tablename__ = "transaction_history"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    token_type = Column(Enum(TokenType), nullable=False)
+    transaction_type = Column(Enum(TransactionType), nullable=False)
+    amount = Column(Float, nullable=False)
+    balance_before = Column(Float, nullable=False)
+    balance_after = Column(Float, nullable=False)
+    related_trade_id = Column(Integer, ForeignKey("trades.id"), nullable=True)
+    description = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    user = relationship("User")
+    related_trade = relationship("Trade")
+
+class BalanceSnapshot(Base):
+    __tablename__ = "balance_snapshots"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    token_type = Column(Enum(TokenType), nullable=False)
+    balance = Column(Float, nullable=False)
+    snapshot_date = Column(Date, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    user = relationship("User")
+
+class ConversionRate(Base):
+    __tablename__ = "conversion_rates"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    from_token = Column(Enum(TokenType), nullable=False)
+    to_token = Column(Enum(TokenType), nullable=False)
+    market_rate = Column(Float, nullable=False)
+    avg_trade_rate = Column(Float, nullable=True)
+    volume_24h = Column(Float, default=0.0, nullable=False)
+    spread_percentage = Column(Float, nullable=True)
     last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

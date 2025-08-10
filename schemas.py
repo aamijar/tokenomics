@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
-from datetime import datetime
-from models import TokenType, TradeStatus
+from datetime import datetime, date
+from models import TokenType, TradeStatus, TransactionType
 
 class UserCreate(BaseModel):
     username: str
@@ -75,3 +75,48 @@ class AuthToken(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: User
+
+class TransactionHistory(BaseModel):
+    id: int
+    user_id: int
+    token_type: TokenType
+    transaction_type: TransactionType
+    amount: float
+    balance_before: float
+    balance_after: float
+    related_trade_id: Optional[int] = None
+    description: Optional[str] = None
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class BalanceSnapshot(BaseModel):
+    id: int
+    user_id: int
+    token_type: TokenType
+    balance: float
+    snapshot_date: date
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class ConversionRate(BaseModel):
+    from_token: TokenType
+    to_token: TokenType
+    market_rate: float
+    avg_trade_rate: Optional[float] = None
+    volume_24h: float
+    spread_percentage: Optional[float] = None
+    last_updated: datetime
+    
+    class Config:
+        from_attributes = True
+
+class TradeCreateEnhanced(BaseModel):
+    from_token: TokenType
+    to_token: TokenType
+    exchange_rate: float
+    amount: float
+    validate_rate: bool = True

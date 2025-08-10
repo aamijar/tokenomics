@@ -5,6 +5,8 @@ from routes.users import router as users_router
 from routes.tokens import router as tokens_router
 from routes.trades import router as trades_router
 from routes.market import router as market_router
+from routes.history import router as history_router
+from routes.conversion import router as conversion_router
 from init_db import create_tables, seed_data
 
 app = FastAPI(
@@ -26,6 +28,8 @@ app.include_router(users_router)
 app.include_router(tokens_router)
 app.include_router(trades_router)
 app.include_router(market_router)
+app.include_router(history_router)
+app.include_router(conversion_router)
 
 @app.on_event("startup")
 async def startup_event():
