@@ -247,7 +247,15 @@ class SwapInterface {
     updateInterface() {
         // Update button state
         const hasValidAmounts = this.sellAmountInput.value && this.currentBuyToken;
-        this.getStartedBtn.disabled = !hasValidAmounts;
+        const isAuthenticated = window.apiService && window.apiService.token;
+        
+        if (!isAuthenticated) {
+            this.getStartedBtn.textContent = 'Login to Trade';
+            this.getStartedBtn.disabled = !hasValidAmounts;
+        } else {
+            this.getStartedBtn.textContent = 'Get Started';
+            this.getStartedBtn.disabled = !hasValidAmounts;
+        }
         
         // Update swap direction button state
         this.swapDirectionBtn.disabled = !this.currentBuyToken;
@@ -261,34 +269,68 @@ class SwapInterface {
         input.parentElement.classList.remove('focused');
     }
     
-    onGetStarted() {
+    async onGetStarted() {
         if (this.getStartedBtn.disabled) return;
+        
+        if (!window.apiService.token) {
+            this.showAuthModal();
+            return;
+        }
         
         const sellAmount = parseFloat(this.sellAmountInput.value);
         const buyAmount = parseFloat(this.buyAmountInput.value);
         
-        // In a real app, this would initiate the swap transaction
-        console.log('Swap initiated:', {
-            sell: { token: this.currentSellToken, amount: sellAmount },
-            buy: { token: this.currentBuyToken, amount: buyAmount }
-        });
+        if (!TokenMapper.isSupported(this.currentSellToken) || !TokenMapper.isSupported(this.currentBuyToken)) {
+            this.showSwapFeedback('Token not supported yet', true);
+            return;
+        }
         
-        // Show feedback
-        this.showSwapFeedback();
+        const fromToken = TokenMapper.frontendToBackend(this.currentSellToken);
+        const toToken = TokenMapper.frontendToBackend(this.currentBuyToken);
+        const exchangeRate = buyAmount / sellAmount;
+        
+        try {
+            this.showSwapFeedback('Creating trade...');
+            
+            const trade = await window.apiService.createTrade(
+                fromToken, toToken, sellAmount, exchangeRate
+            );
+            
+            this.showSwapFeedback('Trade created successfully!');
+            console.log('Trade created:', trade);
+            
+        } catch (error) {
+            this.showSwapFeedback('Trade failed: ' + error.message, true);
+            console.error('Trade creation failed:', error);
+        }
     }
     
-    showSwapFeedback() {
+    showSwapFeedback(message = 'Swapping...', isError = false) {
         const originalText = this.getStartedBtn.textContent;
-        this.getStartedBtn.textContent = 'Swapping...';
+        this.getStartedBtn.textContent = message;
         this.getStartedBtn.disabled = true;
         
+        if (isError) {
+            this.getStartedBtn.classList.add('error');
+        }
+        
         setTimeout(() => {
-            this.getStartedBtn.textContent = 'Swap Complete!';
-            setTimeout(() => {
-                this.getStartedBtn.textContent = originalText;
-                this.getStartedBtn.disabled = false;
-                this.updateInterface();
-            }, 2000);
+            if (!isError) {
+                this.getStartedBtn.textContent = 'Swap Complete!';
+                setTimeout(() => {
+                    this.getStartedBtn.textContent = originalText;
+                    this.getStartedBtn.disabled = false;
+                    this.getStartedBtn.classList.remove('error');
+                    this.updateInterface();
+                }, 2000);
+            } else {
+                setTimeout(() => {
+                    this.getStartedBtn.textContent = originalText;
+                    this.getStartedBtn.disabled = false;
+                    this.getStartedBtn.classList.remove('error');
+                    this.updateInterface();
+                }, 3000);
+            }
         }, 1500);
     }
     
@@ -302,6 +344,69 @@ class SwapInterface {
         if (e.key === 'Enter' && document.activeElement === this.getStartedBtn) {
             this.onGetStarted();
         }
+    }
+    
+    showAuthModal() {
+        const modal = document.getElementById('authModal');
+        modal.classList.remove('hidden');
+        
+        if (!this.authEventsBound) {
+            this.bindAuthEvents();
+            this.authEventsBound = true;
+        }
+    }
+    
+    hideAuthModal() {
+        const modal = document.getElementById('authModal');
+        modal.classList.add('hidden');
+    }
+    
+    bindAuthEvents() {
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const tabName = e.target.dataset.tab;
+                this.switchAuthTab(tabName);
+            });
+        });
+        
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                await window.apiService.login(username, password);
+                this.hideAuthModal();
+                this.updateInterface();
+            } catch (error) {
+                alert('Login failed: ' + error.message);
+            }
+        });
+        
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            
+            try {
+                await window.apiService.register(username, email, password);
+                this.hideAuthModal();
+                this.updateInterface();
+            } catch (error) {
+                alert('Registration failed: ' + error.message);
+            }
+        });
+    }
+    
+    switchAuthTab(tabName) {
+        // Update tab buttons
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.tab === tabName);
+        });
+        
+        document.getElementById('loginForm').classList.toggle('hidden', tabName !== 'login');
+        document.getElementById('registerForm').classList.toggle('hidden', tabName !== 'register');
     }
 }
 

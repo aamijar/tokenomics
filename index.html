@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/components.css">
     <link rel="stylesheet" href="styles/tokens.css">
+    <link rel="stylesheet" href="styles/auth.css">
 </head>
 <body>
     <main class="app">
@@ -76,6 +77,35 @@
         </div>
     </main>
     
+    <!-- Authentication Modal -->
+    <div id="authModal" class="auth-modal hidden">
+        <div class="auth-modal-content">
+            <div class="auth-header">
+                <h2>Welcome to Tokenomics</h2>
+                <button class="auth-close" onclick="window.swapInterface?.hideAuthModal()">&times;</button>
+            </div>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">Login</button>
+                <button class="auth-tab" data-tab="register">Register</button>
+            </div>
+            
+            <form id="loginForm" class="auth-form">
+                <input type="text" id="loginUsername" placeholder="Username" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+            
+            <form id="registerForm" class="auth-form hidden">
+                <input type="text" id="registerUsername" placeholder="Username" required>
+                <input type="email" id="registerEmail" placeholder="Email" required>
+                <input type="password" id="registerPassword" placeholder="Password" required>
+                <button type="submit">Register</button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="scripts/api.js"></script>
     <script src="scripts/tokens.js"></script>
     <script src="scripts/swap.js"></script>
     <script src="scripts/main.js"></script>
