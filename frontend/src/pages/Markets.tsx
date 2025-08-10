@@ -1,6 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AI_TOKEN_IDS } from '@/config';
-import { fetchMarkets, Market } from '@/services/coingecko';
+import { fetchBackendMarkets as fetchMarkets } from '@/services/backend';
+type Market = {
+  id: string;
+  symbol: string;
+  name: string;
+  image: string;
+  current_price: number;
+  market_cap: number;
+  price_change_percentage_24h: number;
+  sparkline_in_7d?: { price: number[] };
+};
 import { formatCurrency, formatPct } from '@/lib/format';
 import { Line, LineChart, ResponsiveContainer, Tooltip } from 'recharts';
 
@@ -13,10 +23,10 @@ export default function Markets() {
     let mounted = true;
     setLoading(true);
     fetchMarkets(ids)
-      .then((d) => mounted && setRows(d))
-      .finally(() => mounted && setLoading(false));
+      .then((d: Market[]) => mounted && setRows(d))
+      .finally(() => setLoading(false));
     const int = setInterval(() => {
-      fetchMarkets(ids).then((d) => mounted && setRows(d));
+      fetchMarkets(ids).then((d: Market[]) => mounted && setRows(d));
     }, 60_000);
     return () => {
       mounted = false;
