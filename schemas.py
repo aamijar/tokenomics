@@ -120,3 +120,22 @@ class TradeCreateEnhanced(BaseModel):
     exchange_rate: float
     amount: float
     validate_rate: bool = True
+
+class SellerApiKeyCreate(BaseModel):
+    token_type: TokenType
+    api_key: str
+
+class SellerApiKeyResponse(BaseModel):
+    id: int
+    token_type: TokenType
+    is_active: bool
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class ProxyRequest(BaseModel):
+    endpoint: str
+    method: str = "POST"
+    headers: Optional[dict] = None
+    data: Optional[dict] = None

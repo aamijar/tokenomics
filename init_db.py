@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from database import engine, SessionLocal, Base
-from models import User, Token, MarketPrice, TokenType, ConversionRate, TransactionType
+from models import User, Token, MarketPrice, TokenType, ConversionRate, TransactionType, SellerApiKey
 from auth import get_password_hash
 from services import ConversionService
 import random
