@@ -18,6 +18,14 @@ export async function fetchBackendMarkets(ids: string[]) {
   const { data } = await api.get("/api/prices", { params: { ids: ids.join(",") } });
   return data;
 }
+export type TokenAddressesResponse = {
+  items: { id: string; addresses: Record<string, string> }[];
+};
+
+export async function fetchTokenAddresses(ids: string[]) {
+  const { data } = await api.get<TokenAddressesResponse>("/api/addresses", { params: { ids: ids.join(",") } });
+  return data;
+}
 
 export type Quote = {
   provider: string;
@@ -33,6 +41,43 @@ export type Quote = {
 
 export async function getQuote(params: { fromToken: string; toToken: string; amount: string; chainId: number }) {
   const { data } = await api.get<Quote>("/api/quotes", { params });
+  return data;
+}
+export type PreparedTx = {
+  provider: string;
+  type: "approve" | "swap";
+  chainId: number;
+  from?: string;
+  to: string;
+  data: string;
+  value: string;
+  route?: { protocol: string; portion: number }[];
+  slippageBps?: number;
+  params?: Record<string, string | number>;
+  notice?: string;
+};
+
+export async function prepareApprove(body: {
+  token: string;
+  spender: string;
+  amount: string;
+  chainId: number;
+  from?: string;
+}) {
+  const { data } = await api.post<PreparedTx>("/api/approve", body);
+  return data;
+}
+
+export async function prepareSwap(body: {
+  fromToken: string;
+  toToken: string;
+  amount: string;
+  minAmountOut: string;
+  chainId: number;
+  from?: string;
+  slippageBps?: number;
+}) {
+  const { data } = await api.post<PreparedTx>("/api/swap", body);
   return data;
 }
 
@@ -71,4 +116,19 @@ export type ActivityResponse = {
 export async function fetchActivity(address: string) {
   const { data } = await api.get<ActivityResponse>(`/api/activity/${address}`);
   return data;
+}
+
+/* helper to resolve a single EVM address from the addresses record */
+export async function resolvePrimaryAddresses(ids: string[]) {
+  const resp = await fetchTokenAddresses(ids);
+  const pick = (addresses: Record<string, string>) => {
+    return (
+      addresses["ethereum"] ||
+      addresses["mainnet"] ||
+      addresses["eth"] ||
+      Object.values(addresses)[0] ||
+      ""
+    );
+  };
+  return resp.items.map((it) => ({ id: it.id, address: pick(it.addresses) })).filter((x) => x.address);
 }

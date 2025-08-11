@@ -1,7 +1,7 @@
-import { Wallet } from 'lucide-react';
 import { ModeToggle } from '@/components/ui/mode-toggle';
 import { WALLETCONNECT_PROJECT_ID } from '@/config';
 import Logo from '@/components/Logo';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 export function Header() {
   return (
@@ -13,10 +13,7 @@ export function Header() {
         </div>
         <div className="flex items-center gap-3">
           {WALLETCONNECT_PROJECT_ID ? (
-            <div className="inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm">
-              <Wallet className="size-4" />
-              <span>Connect Wallet</span>
-            </div>
+            <ConnectButton chainStatus="icon" showBalance={false} />
           ) : (
             <div className="text-xs text-muted-foreground">
               Wallet disabled. Set VITE_WALLETCONNECT_PROJECT_ID to enable.

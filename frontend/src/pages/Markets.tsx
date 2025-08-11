@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { AI_TOKEN_IDS } from '@/config';
 import { fetchBackendMarkets as fetchMarkets } from '@/services/backend';
 type Market = {
@@ -54,13 +55,13 @@ export default function Markets() {
             ) : rows.map((r) => (
               <tr key={r.id} className="border-t hover:bg-muted/40">
                 <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
+                  <Link to={`/token/${r.id}`} className="flex items-center gap-3 hover:underline">
                     <img src={r.image} alt={r.symbol} className="size-6 rounded-full" />
                     <div>
                       <div className="font-medium">{r.name}</div>
                       <div className="text-xs text-muted-foreground">{r.symbol.toUpperCase()}</div>
                     </div>
-                  </div>
+                  </Link>
                 </td>
                 <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(r.current_price)}</td>
                 <td className={`px-4 py-3 text-right tabular-nums ${r.price_change_percentage_24h >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>

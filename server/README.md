@@ -5,6 +5,7 @@ Local development
 - npm ci
 - cp .env.example .env
 - npm run dev
+- If you prefer no auto-reload, use: npm run start
 
 Env
 - PORT: default 8787
@@ -19,9 +20,15 @@ Endpoints
 - GET /health
 - GET /api/tokens -> curated AI tokens
 - GET /api/prices?ids=render-token,the-graph -> CoinGecko markets passthrough with caching
-- GET /api/quotes?fromToken=&amp;toToken=&amp;amount=&amp;chainId=1 -> quote provider (mock by default)
-- GET /api/activity/:address -> placeholder
-- GET /api/pools -> placeholder
+- GET /api/quotes?fromToken=&toToken=&amount=&chainId=1 -> quote provider (mock by default)
+- POST /api/approve { token, spender, amount, chainId, from } -> returns tx data for ERC20 approve (mock/live)
+- POST /api/swap { fromToken, toToken, amount, minAmountOut, chainId, from, slippageBps } -> returns tx data (mock/live)
+- GET /api/activity/:address -> placeholder (to be backed by explorer/Covalent)
+- GET /api/pools -> placeholder (to be backed by subgraphs)
 
 Notes
 - Starts mock-compatible for FE integration. Swap execution and richer analytics can be enabled by setting QUOTE_PROVIDER and adding RPC/subgraph credentials.
+## CI and local install notes
+- Requires Node.js 20+
+- CI uses `npm ci --omit=dev` to avoid installing devDependencies.
+- If you add or change devDependencies, regenerate the lockfile locally by running `npm install` inside `server/` and commit only `server/package-lock.json`.

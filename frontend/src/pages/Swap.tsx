@@ -1,18 +1,33 @@
 import { useEffect, useMemo, useState } from "react";
-import { getQuote, fetchTokens, Quote } from "@/services/backend";
+import { getQuote, fetchTokens, Quote, prepareApprove, prepareSwap, resolvePrimaryAddresses } from "@/services/backend";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { Address, Hex, parseUnits } from "viem";
+import { ERC20_ABI } from "@/abi/erc20";
+import { useAllowance } from "@/hooks/useAllowance";
 
 type TokenMeta = { id: string; symbol: string; name: string };
 
 export default function Swap() {
   const [tokens, setTokens] = useState<TokenMeta[]>([]);
+  const { address, isConnected } = useAccount();
+  const publicClient = usePublicClient();
+
   const [sell, setSell] = useState<TokenMeta | null>(null);
   const [buy, setBuy] = useState<TokenMeta | null>(null);
   const [amount, setAmount] = useState("");
   const [quote, setQuote] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(false);
+  const [slippageBps, setSlippageBps] = useState(50);
+  const [txInfo, setTxInfo] = useState<string>("");
+  const [live, setLive] = useState(false);
+
+  const [sellTokenAddr, setSellTokenAddr] = useState<Address | null>(null);
+  const [sellDecimals, setSellDecimals] = useState<number>(18);
+  const [spender, setSpender] = useState<Address | null>(null);
+  const { data: walletClient } = useWalletClient();
 
   useEffect(() => {
     fetchTokens().then((t) => {
@@ -22,7 +37,52 @@ export default function Swap() {
     });
   }, []);
 
+  useEffect(() => {
+    async function resolveAddresses() {
+      if (!sell && !buy) return;
+      const ids = [sell?.id, buy?.id].filter(Boolean) as string[];
+      if (!ids.length) return;
+      const list: { id: string; address: string }[] = await resolvePrimaryAddresses(ids);
+      const s = list.find((x) => x.id === sell?.id)?.address as Address | undefined;
+      setSellTokenAddr(s || null);
+    }
+    resolveAddresses();
+  }, [sell, buy]);
+
+  useEffect(() => {
+    async function loadDecimals() {
+      if (!publicClient || !sellTokenAddr) {
+        setSellDecimals(18);
+        return;
+      }
+      try {
+        const d = await publicClient.readContract({
+          address: sellTokenAddr,
+          abi: ERC20_ABI,
+          functionName: "decimals",
+          args: [],
+        });
+        setSellDecimals(Number(d || 18));
+      } catch {
+        setSellDecimals(18);
+      }
+    }
+    loadDecimals();
+  }, [publicClient, sellTokenAddr]);
+
   const canQuote = useMemo(() => !!sell && !!buy && !!amount && Number(amount) > 0, [sell, buy, amount]);
+
+  const rawAmount = useMemo(() => {
+    const n = Number(amount || "0");
+    try {
+      return n > 0 ? parseUnits(String(n), sellDecimals) : 0n;
+    } catch {
+      return 0n;
+    }
+  }, [amount, sellDecimals]);
+
+  const { allowance } = useAllowance(sellTokenAddr, spender);
+  const needsApprove = useMemo(() => allowance < rawAmount, [allowance, rawAmount]);
 
   const handleQuote = async () => {
     if (!canQuote || !sell || !buy) return;
@@ -39,6 +99,14 @@ export default function Swap() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!canQuote) return;
+    const id = setInterval(() => {
+      handleQuote();
+    }, 10000);
+    return () => clearInterval(id);
+  }, [canQuote, sell, buy, amount, slippageBps]);
 
   return (
     <div className="grid gap-4 max-w-xl">
@@ -81,12 +149,36 @@ export default function Swap() {
           </div>
         </div>
 
-        <Button disabled={!canQuote || loading} onClick={handleQuote} className="w-full">
-          {loading ? "Getting quote..." : "Get quote"}
-        </Button>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="text-xs text-muted-foreground">Slippage (bps)</div>
+              <Input
+                value={slippageBps}
+                onChange={(e) => setSlippageBps(Math.max(1, Math.min(1000, Number(e.target.value) || 0)))}
+                className="w-24"
+                type="number"
+                min={1}
+                max={1000}
+              />
+            </div>
+            <label className="flex items-center gap-2 text-xs">
+              <input
+                type="checkbox"
+                checked={live}
+                onChange={(e) => setLive(e.target.checked)}
+                className="accent-purple-500"
+              />
+              Live execute
+            </label>
+          </div>
+          <Button disabled={!canQuote || loading} onClick={handleQuote} className="ml-auto">
+            {loading ? "Getting quote..." : "Get quote"}
+          </Button>
+        </div>
 
         {quote && (
-          <div className="rounded-lg border p-3 text-sm space-y-1">
+          <div className="rounded-lg border p-3 text-sm space-y-2">
             <div className="flex justify-between">
               <span>Estimated Output</span>
               <span className="font-medium">
@@ -106,6 +198,70 @@ export default function Swap() {
               <span>${quote.estimatedGasUSD.toFixed(2)}</span>
             </div>
             {quote.notice && <div className="text-xs text-muted-foreground">{quote.notice}</div>}
+
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <Button
+                variant={needsApprove ? "default" : "outline"}
+                disabled={!quote || !sellTokenAddr || !isConnected || !address || !needsApprove}
+                onClick={async () => {
+                  if (!quote || !sell || !sellTokenAddr) return;
+                  const tx = await prepareApprove({
+                    token: sellTokenAddr,
+                    spender: (spender as string) || "0x0000000000000000000000000000000000000000",
+                    amount,
+                    chainId: 1,
+                    from: isConnected && address ? address : "0x0000000000000000000000000000000000000000",
+                  });
+                  if (!spender && tx?.to) setSpender(tx.to as Address);
+                  if (live && walletClient && isConnected && address) {
+                    await walletClient.sendTransaction({
+                      account: address as Address,
+                      to: tx.to as Address,
+                      data: tx.data as Hex,
+                      value: BigInt(tx.value || "0"),
+                      chain: undefined,
+                    });
+                    setTxInfo(`Approve submitted to ${tx.to}`);
+                  } else {
+                    setTxInfo(`Approve tx to: ${tx.to}\nData: ${tx.data.slice(0, 42)}...`);
+                  }
+                }}
+              >
+                {needsApprove ? "Approve" : "Approved"}
+              </Button>
+              <Button
+                disabled={!quote || !sell || !buy || needsApprove || !isConnected || !address}
+                onClick={async () => {
+                  if (!quote || !sell || !buy) return;
+                  const minOut = (Number(quote.toAmount) * (1 - slippageBps / 10000)).toString();
+                  const tx = await prepareSwap({
+                    fromToken: sell.id,
+                    toToken: buy.id,
+                    amount,
+                    minAmountOut: minOut,
+                    chainId: 1,
+                    slippageBps,
+                    from: isConnected && address ? address : "0x0000000000000000000000000000000000000000",
+                  });
+                  if (!spender && tx?.to) setSpender(tx.to as Address);
+                  if (live && walletClient && isConnected && address) {
+                    await walletClient.sendTransaction({
+                      account: address as Address,
+                      to: tx.to as Address,
+                      data: tx.data as Hex,
+                      value: BigInt(tx.value || "0"),
+                      chain: undefined,
+                    });
+                    setTxInfo(`Swap submitted to ${tx.to}`);
+                  } else {
+                    setTxInfo(`Swap tx to: ${tx.to}\nData: ${tx.data.slice(0, 42)}...`);
+                  }
+                }}
+              >
+                {live ? "Execute Swap" : "Prepare Swap"}
+              </Button>
+            </div>
+            {txInfo && <div className="rounded-lg border p-3 text-xs whitespace-pre-wrap mt-2 bg-muted/30">{txInfo}</div>}
           </div>
         )}
       </div>

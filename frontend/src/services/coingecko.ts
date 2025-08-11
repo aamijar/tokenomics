@@ -23,3 +23,16 @@ export async function fetchMarkets(ids: string[]) {
   });
   return data;
 }
+export async function marketChart(id: string, days: number = 7) {
+  const { data } = await axios.get<{ prices: [number, number][] }>(`${COINGECKO_BASE}/coins/${id}/market_chart`, {
+    params: { vs_currency: 'usd', days },
+  });
+  return data;
+}
+
+export async function tokenInfo(id: string) {
+  const { data } = await axios.get(`${COINGECKO_BASE}/coins/${id}`, {
+    params: { localization: false, tickers: false, community_data: false, developer_data: false, sparkline: false },
+  });
+  return data;
+}
