@@ -2,10 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 from database import get_db
-from models import User, SellerApiKey, TokenType, UserType
+from models import User, SellerApiKey, TokenType, UserType, TransactionType
 from schemas import SellerApiKeyCreate, SellerApiKeyResponse
 from auth import get_current_user
 from crypto_utils import encrypt_api_key
+from services.transaction_service import TransactionService
 
 router = APIRouter(prefix="/api/seller/keys", tags=["seller-api-keys"])
 
@@ -38,6 +39,18 @@ def register_api_key(
     )
     
     db.add(db_key)
+    db.flush()
+    
+    initial_balance = 1000.0  # Grant 1000 tokens for testing
+    TransactionService.update_balance_with_history(
+        user_id=current_user.id,
+        token_type=key_data.token_type,
+        amount_change=initial_balance,
+        transaction_type=TransactionType.DEPOSIT,
+        db=db,
+        description=f"Initial balance for {key_data.user_type.value} API key registration"
+    )
+    
     db.commit()
     db.refresh(db_key)
     

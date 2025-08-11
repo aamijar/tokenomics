@@ -433,5 +433,7 @@ let swapInterface;
 if (typeof module === 'undefined') {
     document.addEventListener('DOMContentLoaded', () => {
         swapInterface = new SwapInterface();
+        window.swapInterface = swapInterface;
+        setTimeout(() => swapInterface.updateInterface(), 100);
     });
 }
