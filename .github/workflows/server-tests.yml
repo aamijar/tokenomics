@@ -28,5 +28,6 @@ jobs:
 
       - name: Run unit tests
         env:
+          NODE_ENV: test
           QUOTE_PROVIDER: mock
         run: npm run test:ci

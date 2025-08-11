@@ -11,8 +11,10 @@ dotenv.config();
 export const app = express();
 const logger = pino({ level: "info" });
 
-app.use(pinoHttp({ logger }));
-app.use(morgan("tiny"));
+if (process.env.NODE_ENV !== "test") {
+  app.use(pinoHttp({ logger }));
+  app.use(morgan("tiny"));
+}
 app.use(express.json());
 
 const corsOrigin = process.env.CORS_ORIGIN || "*";
