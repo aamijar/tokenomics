@@ -159,7 +159,6 @@ class OrderResponse(BaseModel):
         from_attributes = True
 
 class ProxyRequest(BaseModel):
-    endpoint: str
     method: str = "POST"
     headers: Optional[dict] = None
     data: Optional[dict] = None
