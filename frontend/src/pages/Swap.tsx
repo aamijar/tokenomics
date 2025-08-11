@@ -3,11 +3,13 @@ import { getQuote, fetchTokens, Quote, prepareApprove, prepareSwap } from "@/ser
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAccount } from "wagmi";
 
 type TokenMeta = { id: string; symbol: string; name: string };
 
 export default function Swap() {
   const [tokens, setTokens] = useState<TokenMeta[]>([]);
+  const { address, isConnected } = useAccount();
   const [sell, setSell] = useState<TokenMeta | null>(null);
   const [buy, setBuy] = useState<TokenMeta | null>(null);
   const [amount, setAmount] = useState("");
@@ -117,11 +119,11 @@ export default function Swap() {
             onClick={async () => {
               if (!quote || !sell) return;
               const tx = await prepareApprove({
-                token: "0xTokenAddress000000000000000000000000000000", // placeholder
+                token: "0xTokenAddress000000000000000000000000000000",
                 spender: "0xRouterSpender000000000000000000000000000000",
                 amount,
                 chainId: 1,
-                from: "0x0000000000000000000000000000000000000000",
+                from: isConnected && address ? address : "0x0000000000000000000000000000000000000000",
               });
               setTxInfo(`Approve tx to: ${tx.to}\nData: ${tx.data.slice(0, 42)}...`);
             }}
@@ -140,7 +142,7 @@ export default function Swap() {
                 minAmountOut: minOut,
                 chainId: 1,
                 slippageBps,
-                from: "0x0000000000000000000000000000000000000000",
+                from: isConnected && address ? address : "0x0000000000000000000000000000000000000000",
               });
               setTxInfo(`Swap tx to: ${tx.to}\nData: ${tx.data.slice(0, 42)}...`);
             }}
