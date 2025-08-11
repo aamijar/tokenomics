@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "nodemon -r dotenv/config src/index.js",
     "start": "node -r dotenv/config src/index.js",
-    "lint": "echo \"No lint configured\""
+    "lint": "echo \"No lint configured\"",
+    "test": "QUOTE_PROVIDER=mock node --test",
+    "test:ci": "QUOTE_PROVIDER=mock node --test --test-reporter spec"
   },
   "dependencies": {
     "axios": "^1.7.7",
@@ -14,13 +16,14 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "morgan": "^1.10.0",
+    "node-cache": "^5.1.2",
     "pino": "^9.5.0",
     "pino-http": "^10.3.0",
     "rate-limiter-flexible": "^5.0.4",
-    "zod": "^3.23.8",
-    "node-cache": "^5.1.2"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
+    "nodemon": "^3.1.0",
+    "supertest": "^7.1.4"
   }
 }

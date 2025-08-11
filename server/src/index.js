@@ -8,7 +8,7 @@ import { router as api } from "./routes/api.js";
 
 dotenv.config();
 
-const app = express();
+export const app = express();
 const logger = pino({ level: "info" });
 
 app.use(pinoHttp({ logger }));
@@ -23,6 +23,9 @@ app.get("/health", (_, res) => res.json({ ok: true }));
 app.use("/api", api);
 
 const port = process.env.PORT || 8787;
-app.listen(port, () => {
-  logger.info({ port }, "server listening");
-});
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  app.listen(port, () => {
+    logger.info({ port }, "server listening");
+  });
+}
