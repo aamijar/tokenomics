@@ -53,18 +53,19 @@ export function useBalances(tokenIds: string[]) {
 
         const out: Record<string, Balance> = {};
         addrs.forEach((t, i) => {
-          const decAny = (decRes as any)[i]?.result;
-          const rawAny = (balRes as any)[i]?.result;
-          const dec = typeof decAny === "bigint" ? Number(decAny) : (decAny as number | undefined);
-          const raw = rawAny as bigint | undefined;
+          const decVal = (decRes as Array<{ result?: unknown }>)[i]?.result;
+          const rawVal = (balRes as Array<{ result?: unknown }>)[i]?.result;
+          const dec = typeof decVal === "bigint" ? Number(decVal) : typeof decVal === "number" ? decVal : undefined;
+          const raw = typeof rawVal === "bigint" ? rawVal : undefined;
           if (typeof dec === "number" && typeof raw === "bigint") {
             const amount = parseFloat(formatUnits(raw, dec));
             out[t.id] = { id: t.id, address: t.addr, decimals: dec, raw, amount };
           }
         });
         if (!cancelled) setBalances(out);
-      } catch (e: any) {
-        if (!cancelled) setError(e?.message || String(e));
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        if (!cancelled) setError(msg);
       } finally {
         if (!cancelled) setLoading(false);
       }
