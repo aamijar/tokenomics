@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { fetchBackendMarkets as fetchMarkets } from '@/services/backend';
+import { useAccount } from 'wagmi';
 type Market = {
   id: string;
   symbol: string;
@@ -15,6 +16,7 @@ import { formatCurrency } from '@/lib/format';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 export default function Portfolio() {
+  const { address, isConnected } = useAccount();
   const { holdings } = usePortfolio();
   const [markets, setMarkets] = useState<Record<string, Market>>({});
 
@@ -40,7 +42,13 @@ export default function Portfolio() {
       <div className="flex items-end justify-between">
         <div>
           <h2 className="text-xl font-semibold">Portfolio</h2>
-          <div className="text-muted-foreground text-sm">Mock portfolio. Connect wallet to replace with on-chain balances.</div>
+          <div className="text-muted-foreground text-sm">
+            {isConnected ? (
+              <>Connected: {address?.slice(0, 6)}…{address?.slice(-4)} — on-chain balances coming next.</>
+            ) : (
+              <>Mock portfolio. Connect wallet to replace with on-chain balances.</>
+            )}
+          </div>
         </div>
         <div className="text-right">
           <div className="text-sm text-muted-foreground">Total value</div>
