@@ -121,6 +121,7 @@ export default function Swap() {
                 spender: "0xRouterSpender000000000000000000000000000000",
                 amount,
                 chainId: 1,
+                from: "0x0000000000000000000000000000000000000000",
               });
               setTxInfo(`Approve tx to: ${tx.to}\nData: ${tx.data.slice(0, 42)}...`);
             }}
@@ -139,6 +140,7 @@ export default function Swap() {
                 minAmountOut: minOut,
                 chainId: 1,
                 slippageBps,
+                from: "0x0000000000000000000000000000000000000000",
               });
               setTxInfo(`Swap tx to: ${tx.to}\nData: ${tx.data.slice(0, 42)}...`);
             }}
