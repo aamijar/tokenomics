@@ -1,4 +1,6 @@
-# tokenomics
+# Tokenomics
+
+A vibrant marketplace for AI tokens with Uniswap-level UX: Markets, Portfolio, Swap, Activity, and Pools.
 
 Frontend + Backend
 
