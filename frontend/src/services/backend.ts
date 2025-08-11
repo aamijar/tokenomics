@@ -35,6 +35,44 @@ export async function getQuote(params: { fromToken: string; toToken: string; amo
   const { data } = await api.get<Quote>("/api/quotes", { params });
   return data;
 }
+export type PreparedTx = {
+  provider: string;
+  type: "approve" | "swap";
+  chainId: number;
+  from?: string;
+  to: string;
+  data: string;
+  value: string;
+  route?: { protocol: string; portion: number }[];
+  slippageBps?: number;
+  params?: Record<string, string | number>;
+  notice?: string;
+};
+
+export async function prepareApprove(body: {
+  token: string;
+  spender: string;
+  amount: string;
+  chainId: number;
+  from?: string;
+}) {
+  const { data } = await api.post<PreparedTx>("/api/approve", body);
+  return data;
+}
+
+export async function prepareSwap(body: {
+  fromToken: string;
+  toToken: string;
+  amount: string;
+  minAmountOut: string;
+  chainId: number;
+  from?: string;
+  slippageBps?: number;
+}) {
+  const { data } = await api.post<PreparedTx>("/api/swap", body);
+  return data;
+}
+
 
 export type PoolOverview = {
   tvlUSD: number;

@@ -4,6 +4,7 @@ import tokens from "../services/tokens.js";
 import quotes from "../services/quotes.js";
 import activity from "../services/activity.js";
 import pools from "../services/pools.js";
+import tx from "../services/tx.js";
 
 export const router = Router();
 
@@ -25,6 +26,32 @@ router.get("/quotes", async (req, res) => {
     toToken: String(toToken || ""),
     amount: String(amount || ""),
     chainId: Number(chainId || 1),
+  });
+  res.json(data);
+});
+
+router.post("/approve", async (req, res) => {
+  const { token, spender, amount, chainId, from } = req.body || {};
+  const data = await tx.prepareApproval({
+    token: String(token || ""),
+    spender: String(spender || ""),
+    amount: String(amount || ""),
+    chainId: Number(chainId || 1),
+    from: String(from || ""),
+  });
+  res.json(data);
+});
+
+router.post("/swap", async (req, res) => {
+  const { fromToken, toToken, amount, minAmountOut, chainId, from, slippageBps } = req.body || {};
+  const data = await tx.prepareSwap({
+    fromToken: String(fromToken || ""),
+    toToken: String(toToken || ""),
+    amount: String(amount || ""),
+    minAmountOut: String(minAmountOut || ""),
+    chainId: Number(chainId || 1),
+    from: String(from || ""),
+    slippageBps: Number(slippageBps || 50),
   });
   res.json(data);
 });

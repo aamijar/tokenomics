@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { getQuote, fetchTokens, Quote } from "@/services/backend";
+import { getQuote, fetchTokens, Quote, prepareApprove, prepareSwap } from "@/services/backend";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,6 +13,9 @@ export default function Swap() {
   const [amount, setAmount] = useState("");
   const [quote, setQuote] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(false);
+  const [slippageBps, setSlippageBps] = useState(50);
+  const [txInfo, setTxInfo] = useState<string>("");
+
 
   useEffect(() => {
     fetchTokens().then((t) => {
@@ -81,9 +84,22 @@ export default function Swap() {
           </div>
         </div>
 
-        <Button disabled={!canQuote || loading} onClick={handleQuote} className="w-full">
-          {loading ? "Getting quote..." : "Get quote"}
-        </Button>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="text-xs text-muted-foreground">Slippage (bps)</div>
+            <Input
+              value={slippageBps}
+              onChange={(e) => setSlippageBps(Math.max(1, Math.min(1000, Number(e.target.value) || 0)))}
+              className="w-24"
+              type="number"
+              min={1}
+              max={1000}
+            />
+          </div>
+          <Button disabled={!canQuote || loading} onClick={handleQuote} className="ml-auto">
+            {loading ? "Getting quote..." : "Get quote"}
+          </Button>
+        </div>
 
         {quote && (
           <div className="rounded-lg border p-3 text-sm space-y-1">
@@ -94,6 +110,46 @@ export default function Swap() {
               </span>
             </div>
             <div className="flex justify-between">
+        <div className="grid grid-cols-2 gap-3 pt-2">
+          <Button
+            variant="outline"
+            disabled={!quote || !sell}
+            onClick={async () => {
+              if (!quote || !sell) return;
+              const tx = await prepareApprove({
+                token: "0xTokenAddress000000000000000000000000000000", // placeholder
+                spender: "0xRouterSpender000000000000000000000000000000",
+                amount,
+                chainId: 1,
+              });
+              setTxInfo(`Approve tx to: ${tx.to}\nData: ${tx.data.slice(0, 42)}...`);
+            }}
+          >
+            Prepare Approve
+          </Button>
+          <Button
+            disabled={!quote || !sell || !buy}
+            onClick={async () => {
+              if (!quote || !sell || !buy) return;
+              const minOut = (Number(quote.toAmount) * (1 - slippageBps / 10000)).toString();
+              const tx = await prepareSwap({
+                fromToken: sell.id,
+                toToken: buy.id,
+                amount,
+                minAmountOut: minOut,
+                chainId: 1,
+                slippageBps,
+              });
+              setTxInfo(`Swap tx to: ${tx.to}\nData: ${tx.data.slice(0, 42)}...`);
+            }}
+          >
+            Prepare Swap
+          </Button>
+        </div>
+        {txInfo && (
+          <div className="rounded-lg border p-3 text-xs whitespace-pre-wrap mt-2 bg-muted/30">{txInfo}</div>
+        )}
+
               <span>Provider</span>
               <span>{quote.provider}</span>
             </div>
