@@ -5,6 +5,7 @@ import quotes from "../services/quotes.js";
 import activity from "../services/activity.js";
 import pools from "../services/pools.js";
 import tx from "../services/tx.js";
+import addresses from "../services/addresses.js";
 
 export const router = Router();
 
@@ -17,6 +18,12 @@ router.get("/prices", async (req, res) => {
   const ids = (req.query.ids || "").toString().split(",").filter(Boolean);
   const data = await prices.markets(ids);
   res.json(data);
+});
+
+router.get("/addresses", async (req, res) => {
+  const ids = (req.query.ids || "").toString().split(",").filter(Boolean);
+  const data = await addresses.forIds(ids);
+  res.json({ items: data });
 });
 
 router.get("/quotes", async (req, res) => {

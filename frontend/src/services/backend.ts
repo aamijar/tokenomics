@@ -18,6 +18,15 @@ export async function fetchBackendMarkets(ids: string[]) {
   const { data } = await api.get("/api/prices", { params: { ids: ids.join(",") } });
   return data;
 }
+export type TokenAddressesResponse = {
+  items: { id: string; addresses: Record<string, string> }[];
+};
+
+export async function fetchTokenAddresses(ids: string[]) {
+  const { data } = await api.get<TokenAddressesResponse>("/api/addresses", { params: { ids: ids.join(",") } });
+  return data;
+}
+
 
 export type Quote = {
   provider: string;
