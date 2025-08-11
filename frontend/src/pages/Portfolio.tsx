@@ -1,5 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import { fetchMarkets, Market } from '@/services/coingecko';
+import { fetchBackendMarkets as fetchMarkets } from '@/services/backend';
+type Market = {
+  id: string;
+  symbol: string;
+  name: string;
+  image: string;
+  current_price: number;
+  market_cap: number;
+  price_change_percentage_24h: number;
+  sparkline_in_7d?: { price: number[] };
+};
 import { usePortfolio } from '@/store/portfolio';
 import { formatCurrency } from '@/lib/format';
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -11,9 +21,9 @@ export default function Portfolio() {
   const ids = useMemo(() => holdings.map((h) => h.id), [holdings]);
   useEffect(() => {
     if (!ids.length) return;
-    fetchMarkets(ids).then((rows) => {
+    fetchMarkets(ids).then((rows: Market[]) => {
       const map: Record<string, Market> = {};
-      rows.forEach((r) => (map[r.id] = r));
+      rows.forEach((r: Market) => (map[r.id] = r));
       setMarkets(map);
     });
   }, [ids]);
