@@ -27,7 +27,6 @@ export async function fetchTokenAddresses(ids: string[]) {
   return data;
 }
 
-
 export type Quote = {
   provider: string;
   fromToken: string;
@@ -82,7 +81,6 @@ export async function prepareSwap(body: {
   return data;
 }
 
-
 export type PoolOverview = {
   tvlUSD: number;
   pools: {
@@ -118,4 +116,19 @@ export type ActivityResponse = {
 export async function fetchActivity(address: string) {
   const { data } = await api.get<ActivityResponse>(`/api/activity/${address}`);
   return data;
+}
+
+/* helper to resolve a single EVM address from the addresses record */
+export async function resolvePrimaryAddresses(ids: string[]) {
+  const resp = await fetchTokenAddresses(ids);
+  const pick = (addresses: Record<string, string>) => {
+    return (
+      addresses["ethereum"] ||
+      addresses["mainnet"] ||
+      addresses["eth"] ||
+      Object.values(addresses)[0] ||
+      ""
+    );
+  };
+  return resp.items.map((it) => ({ id: it.id, address: pick(it.addresses) })).filter((x) => x.address);
 }

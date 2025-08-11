@@ -18,12 +18,12 @@ export function useAllowance(token: Address | null, spender: Address | null) {
       setLoading(true);
       try {
         const res = await client.readContract({
-          address: token,
+          address: token as Address,
           abi: ERC20_ABI,
           functionName: "allowance",
           args: [address as Address, spender as Address],
         });
-        if (!cancelled) setValue(res as bigint);
+        if (!cancelled) setValue(res as unknown as bigint);
       } finally {
         if (!cancelled) setLoading(false);
       }
