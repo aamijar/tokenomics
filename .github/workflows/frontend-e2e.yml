@@ -1,0 +1,54 @@
+name: Frontend E2E
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ devin/** ]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install server deps
+        working-directory: server
+        run: npm ci
+
+      - name: Start backend (mock) in background
+        working-directory: server
+        env:
+          PORT: 8787
+          QUOTE_PROVIDER: mock
+          CORS_ORIGIN: "*"
+        run: |
+          nohup npm run start > ../server.log 2>&1 &
+          for i in {1..30}; do
+            curl -sf http://localhost:8787/health && break
+            sleep 1
+          done
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Run Playwright tests
+        working-directory: frontend
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:5173
+        run: npm run test:e2e:ci
