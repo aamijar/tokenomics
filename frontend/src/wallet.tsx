@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo } from "react";
+import { ReactNode, useMemo } from "react";
 import { getDefaultConfig, RainbowKitProvider, lightTheme, darkTheme } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
 import { mainnet, base } from "wagmi/chains";
