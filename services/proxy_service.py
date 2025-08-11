@@ -1,6 +1,6 @@
 import httpx
 from sqlalchemy.orm import Session
-from models import User, Token, SellerApiKey, TokenType, TransactionType, UserType, Trade, TradeStatus
+from models import User, Token, SellerApiKey, TokenType, TransactionType, UserType, Order, TradeStatus
 from services.transaction_service import TransactionService
 from crypto_utils import decrypt_api_key
 from typing import Dict, Any, Optional
@@ -31,16 +31,21 @@ class ProxyService:
     
     @staticmethod
     def get_seller_key_for_user(user: User, token_type: TokenType, db: Session) -> Optional[SellerApiKey]:
-        completed_trades = db.query(Trade).filter(
-            Trade.executor_id == user.id,
-            Trade.to_token == token_type,
-            Trade.status == TradeStatus.COMPLETED
+        completed_orders = db.query(Order).filter(
+            Order.user_id == user.id,
+            Order.to_token == token_type,
+            Order.status == TradeStatus.COMPLETED
         ).all()
         
-        if not completed_trades:
+        if not completed_orders:
             return None
         
-        seller_user_ids = [trade.creator_id for trade in completed_trades]
+        matched_order_ids = [order.matched_order_id for order in completed_orders if order.matched_order_id]
+        if not matched_order_ids:
+            return None
+        
+        matched_orders = db.query(Order).filter(Order.id.in_(matched_order_ids)).all()
+        seller_user_ids = [order.user_id for order in matched_orders]
         
         seller_key = db.query(SellerApiKey).filter(
             SellerApiKey.user_id.in_(seller_user_ids),
