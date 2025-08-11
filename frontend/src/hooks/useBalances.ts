@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAccount, useChainId, usePublicClient } from "wagmi";
 import { Address, formatUnits } from "viem";
 import { ERC20_ABI } from "@/abi/erc20";
@@ -47,14 +47,16 @@ export function useBalances(tokenIds: string[]) {
         const balCalls = addrs.map((a) => ({ address: a.addr, abi: ERC20_ABI, functionName: "balanceOf" as const, args: [address as Address] }));
 
         const [decRes, balRes] = await Promise.all([
-          client!.readContracts({ contracts: decCalls }),
-          client!.readContracts({ contracts: balCalls }),
+          client!.multicall({ contracts: decCalls }),
+          client!.multicall({ contracts: balCalls }),
         ]);
 
         const out: Record<string, Balance> = {};
         addrs.forEach((t, i) => {
-          const dec = (decRes[i] as any)?.result as number | undefined;
-          const raw = (balRes[i] as any)?.result as bigint | undefined;
+          const decAny = (decRes as any)[i]?.result;
+          const rawAny = (balRes as any)[i]?.result;
+          const dec = typeof decAny === "bigint" ? Number(decAny) : (decAny as number | undefined);
+          const raw = rawAny as bigint | undefined;
           if (typeof dec === "number" && typeof raw === "bigint") {
             const amount = parseFloat(formatUnits(raw, dec));
             out[t.id] = { id: t.id, address: t.addr, decimals: dec, raw, amount };
