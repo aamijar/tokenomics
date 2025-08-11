@@ -17,6 +17,8 @@ export async function quote({ chainId, fromToken, toToken, amount }) {
       dst: toToken,
       amount,
     },
+    timeout: 5000,
+    validateStatus: () => true,
   });
   return {
     provider: "1inch",
@@ -35,6 +37,8 @@ export async function buildApproveTx({ chainId, token, spender, amount }) {
   const { data } = await axios.get(url, {
     headers: authHeaders(),
     params: { tokenAddress: token, amount },
+    timeout: 5000,
+    validateStatus: () => true,
   });
   const to = spender || data.to;
   return {
@@ -60,6 +64,8 @@ export async function buildSwapTx({ chainId, fromAddress, fromToken, toToken, am
       slippage,
       allowPartialFill: false,
     },
+    timeout: 5000,
+    validateStatus: () => true,
   });
   const tx = data.tx || data.transaction || data;
   return {
