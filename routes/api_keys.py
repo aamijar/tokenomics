@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 from database import get_db
-from models import User, SellerApiKey, TokenType
+from models import User, SellerApiKey, TokenType, UserType
 from schemas import SellerApiKeyCreate, SellerApiKeyResponse
 from auth import get_current_user
 from crypto_utils import encrypt_api_key
@@ -18,13 +18,14 @@ def register_api_key(
     existing_key = db.query(SellerApiKey).filter(
         SellerApiKey.user_id == current_user.id,
         SellerApiKey.token_type == key_data.token_type,
+        SellerApiKey.user_type == key_data.user_type,
         SellerApiKey.is_active == True
     ).first()
     
     if existing_key:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Active API key already exists for {key_data.token_type.value}"
+            detail=f"Active {key_data.user_type.value} API key already exists for {key_data.token_type.value}"
         )
     
     encrypted_key = encrypt_api_key(key_data.api_key)
@@ -32,6 +33,7 @@ def register_api_key(
     db_key = SellerApiKey(
         user_id=current_user.id,
         token_type=key_data.token_type,
+        user_type=key_data.user_type,
         encrypted_api_key=encrypted_key
     )
     

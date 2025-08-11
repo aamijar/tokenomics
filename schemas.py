@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from datetime import datetime, date
-from models import TokenType, TradeStatus, TransactionType
+from models import TokenType, TradeStatus, TransactionType, UserType
 
 class UserCreate(BaseModel):
     username: str
@@ -124,12 +124,36 @@ class TradeCreateEnhanced(BaseModel):
 class SellerApiKeyCreate(BaseModel):
     token_type: TokenType
     api_key: str
+    user_type: UserType = UserType.SELLER
 
 class SellerApiKeyResponse(BaseModel):
     id: int
+    user_id: int
     token_type: TokenType
+    user_type: UserType
     is_active: bool
     created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class OrderCreate(BaseModel):
+    from_token: TokenType
+    to_token: TokenType
+    amount: float
+    exchange_rate: float
+
+class OrderResponse(BaseModel):
+    id: int
+    user_id: int
+    from_token: TokenType
+    to_token: TokenType
+    amount: float
+    exchange_rate: float
+    status: TradeStatus
+    matched_order_id: Optional[int]
+    created_at: datetime
+    matched_at: Optional[datetime]
     
     class Config:
         from_attributes = True

@@ -1,6 +1,6 @@
 import httpx
 from sqlalchemy.orm import Session
-from models import User, Token, SellerApiKey, TokenType, TransactionType
+from models import User, Token, SellerApiKey, TokenType, TransactionType, UserType, Trade, TradeStatus
 from services.transaction_service import TransactionService
 from crypto_utils import decrypt_api_key
 from typing import Dict, Any, Optional
@@ -20,6 +20,7 @@ class ProxyService:
     def get_available_seller(token_type: TokenType, db: Session) -> Optional[SellerApiKey]:
         available_keys = db.query(SellerApiKey).filter(
             SellerApiKey.token_type == token_type,
+            SellerApiKey.user_type == UserType.SELLER,
             SellerApiKey.is_active == True
         ).all()
         
@@ -27,6 +28,28 @@ class ProxyService:
             return None
             
         return random.choice(available_keys)
+    
+    @staticmethod
+    def get_seller_key_for_user(user: User, token_type: TokenType, db: Session) -> Optional[SellerApiKey]:
+        completed_trades = db.query(Trade).filter(
+            Trade.executor_id == user.id,
+            Trade.to_token == token_type,
+            Trade.status == TradeStatus.COMPLETED
+        ).all()
+        
+        if not completed_trades:
+            return None
+        
+        seller_user_ids = [trade.creator_id for trade in completed_trades]
+        
+        seller_key = db.query(SellerApiKey).filter(
+            SellerApiKey.user_id.in_(seller_user_ids),
+            SellerApiKey.token_type == token_type,
+            SellerApiKey.user_type == UserType.SELLER,
+            SellerApiKey.is_active == True
+        ).first()
+        
+        return seller_key
     
     @staticmethod
     def calculate_token_cost(endpoint: str, token_type: TokenType) -> float:
@@ -58,9 +81,11 @@ class ProxyService:
         if not user_token or user_token.balance < token_cost:
             raise ValueError(f"Insufficient {token_type.value} tokens. Required: {token_cost}, Available: {user_token.balance if user_token else 0}")
         
-        seller_key = ProxyService.get_available_seller(token_type, db)
+        seller_key = ProxyService.get_seller_key_for_user(user, token_type, db)
         if not seller_key:
-            raise ValueError(f"No available sellers for {token_type.value} tokens")
+            seller_key = ProxyService.get_available_seller(token_type, db)
+            if not seller_key:
+                raise ValueError(f"No available sellers for {token_type.value} tokens")
         
         api_key = decrypt_api_key(seller_key.encrypted_api_key)
         
@@ -69,6 +94,11 @@ class ProxyService:
             proxy_headers["Authorization"] = f"Bearer {api_key}"
             proxy_headers["Content-Type"] = "application/json"
             base_url = "https://api.openai.com/v1"
+        elif token_type == TokenType.ANTHROPIC:
+            proxy_headers["x-api-key"] = api_key
+            proxy_headers["Content-Type"] = "application/json"
+            proxy_headers["anthropic-version"] = "2023-06-01"
+            base_url = "https://api.anthropic.com/v1"
         
         async with httpx.AsyncClient() as client:
             response = await client.request(

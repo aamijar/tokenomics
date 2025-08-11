@@ -12,6 +12,7 @@ class TokenType(enum.Enum):
     MISTRAL = "mistral"
 
 class TradeStatus(enum.Enum):
+    PENDING = "pending"
     ACTIVE = "active"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
@@ -112,6 +113,10 @@ class ConversionRate(Base):
     spread_percentage = Column(Float, nullable=True)
     last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
+class UserType(enum.Enum):
+    SELLER = "seller"
+    BUYER = "buyer"
+
 class SellerApiKey(Base):
     __tablename__ = "seller_api_keys"
     
@@ -119,7 +124,25 @@ class SellerApiKey(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     token_type = Column(Enum(TokenType), nullable=False)
     encrypted_api_key = Column(String, nullable=False)
+    user_type = Column(Enum(UserType), default=UserType.SELLER, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     user = relationship("User")
+
+class Order(Base):
+    __tablename__ = "orders"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    from_token = Column(Enum(TokenType), nullable=False)
+    to_token = Column(Enum(TokenType), nullable=False)
+    amount = Column(Float, nullable=False)
+    exchange_rate = Column(Float, nullable=False)
+    status = Column(Enum(TradeStatus), default=TradeStatus.PENDING, nullable=False)
+    matched_order_id = Column(Integer, ForeignKey("orders.id"), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    matched_at = Column(DateTime(timezone=True), nullable=True)
+    
+    user = relationship("User")
+    matched_order = relationship("Order", remote_side=[id])

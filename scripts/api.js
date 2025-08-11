@@ -110,6 +110,87 @@ class ApiService {
         
         return await response.json();
     }
+
+    async createOrder(fromToken, toToken, amount, exchangeRate) {
+        const response = await fetch(`${this.baseURL}/api/orders/create`, {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify({
+                from_token: fromToken,
+                to_token: toToken,
+                amount: amount,
+                exchange_rate: exchangeRate
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Order creation failed');
+        }
+        
+        return await response.json();
+    }
+
+    async getOrders() {
+        const response = await fetch(`${this.baseURL}/api/orders/list`, {
+            method: 'GET',
+            headers: this.getAuthHeaders()
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to get orders');
+        }
+        
+        return await response.json();
+    }
+
+    async cancelOrder(orderId) {
+        const response = await fetch(`${this.baseURL}/api/orders/${orderId}`, {
+            method: 'DELETE',
+            headers: this.getAuthHeaders()
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to cancel order');
+        }
+        
+        return await response.json();
+    }
+
+    async addApiKey(tokenType, apiKey, userType = 'seller') {
+        const response = await fetch(`${this.baseURL}/api/seller/keys/register`, {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify({
+                token_type: tokenType,
+                api_key: apiKey,
+                user_type: userType
+            })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to add API key');
+        }
+        
+        return await response.json();
+    }
+
+    async getApiKeys() {
+        const response = await fetch(`${this.baseURL}/api/seller/keys/list`, {
+            method: 'GET',
+            headers: this.getAuthHeaders()
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Failed to get API keys');
+        }
+        
+        return await response.json();
+    }
 }
 
 window.apiService = new ApiService();

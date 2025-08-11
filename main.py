@@ -10,6 +10,7 @@ from routes.history import router as history_router
 from routes.conversion import router as conversion_router
 from routes.proxy import router as proxy_router
 from routes.api_keys import router as api_keys_router
+from routes.orders import router as orders_router
 from init_db import create_tables, seed_data
 
 app = FastAPI(
@@ -35,6 +36,7 @@ app.include_router(history_router)
 app.include_router(conversion_router)
 app.include_router(proxy_router)
 app.include_router(api_keys_router)
+app.include_router(orders_router)
 
 app.mount("/assets", StaticFiles(directory="assets"), name="assets")
 app.mount("/styles", StaticFiles(directory="styles"), name="styles") 

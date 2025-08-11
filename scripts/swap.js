@@ -290,18 +290,23 @@ class SwapInterface {
         const exchangeRate = buyAmount / sellAmount;
         
         try {
-            this.showSwapFeedback('Creating trade...');
+            this.showSwapFeedback('Creating order...');
             
-            const trade = await window.apiService.createTrade(
+            const order = await window.apiService.createOrder(
                 fromToken, toToken, sellAmount, exchangeRate
             );
             
-            this.showSwapFeedback('Trade created successfully!');
-            console.log('Trade created:', trade);
+            if (order.status === 'completed') {
+                this.showSwapFeedback('Order matched and executed!');
+            } else if (order.status === 'pending') {
+                this.showSwapFeedback('Order created - waiting for match...');
+            }
+            
+            console.log('Order created:', order);
             
         } catch (error) {
-            this.showSwapFeedback('Trade failed: ' + error.message, true);
-            console.error('Trade creation failed:', error);
+            this.showSwapFeedback('Order failed: ' + error.message, true);
+            console.error('Order creation failed:', error);
         }
     }
     
@@ -388,9 +393,22 @@ class SwapInterface {
             const username = document.getElementById('registerUsername').value;
             const email = document.getElementById('registerEmail').value;
             const password = document.getElementById('registerPassword').value;
+            const tokenType = document.getElementById('registerTokenType').value;
+            const apiKey = document.getElementById('registerApiKey').value;
+            const userType = document.getElementById('registerUserType').value;
             
             try {
                 await window.apiService.register(username, email, password);
+                
+                if (tokenType && apiKey) {
+                    try {
+                        await window.apiService.addApiKey(tokenType, apiKey, userType);
+                        console.log('API key added successfully');
+                    } catch (apiError) {
+                        console.warn('API key registration failed:', apiError.message);
+                    }
+                }
+                
                 this.hideAuthModal();
                 this.updateInterface();
             } catch (error) {
