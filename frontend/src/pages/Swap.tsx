@@ -189,7 +189,7 @@ export default function Swap() {
             <div className="grid grid-cols-2 gap-3 pt-2">
               <Button
                 variant={needsApprove ? "default" : "outline"}
-                disabled={!quote || !sellTokenAddr || !isConnected || !address || !!(!needsApprove)}
+                disabled={!quote || !sellTokenAddr || !isConnected || !address || !needsApprove}
                 onClick={async () => {
                   if (!quote || !sell || !sellTokenAddr) return;
                   const tx = await prepareApprove({

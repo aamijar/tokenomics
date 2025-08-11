@@ -28,3 +28,7 @@ Endpoints
 
 Notes
 - Starts mock-compatible for FE integration. Swap execution and richer analytics can be enabled by setting QUOTE_PROVIDER and adding RPC/subgraph credentials.
+## CI and local install notes
+- Requires Node.js 20+
+- CI uses `npm ci --omit=dev` to avoid installing devDependencies.
+- If you add or change devDependencies, regenerate the lockfile locally by running `npm install` inside `server/` and commit only `server/package-lock.json`.
