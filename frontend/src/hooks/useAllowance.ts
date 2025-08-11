@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Address } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
-import { ERC20_ABI } from "@/abi/erc20";
+import { ERC20_ABI } from "../abi/erc20";
 
 export function useAllowance(token: Address | null, spender: Address | null) {
   const { address } = useAccount();
