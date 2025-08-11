@@ -22,17 +22,22 @@ const queryTopPools = `
 
 async function fetchPoolsFrom(subgraphUrl) {
   try {
-    const { data } = await axios.post(subgraphUrl, {
-      query: queryTopPools,
-      variables: { first: 8 },
-    });
-    const rows = data.data?.pools || [];
+    const { data } = await axios.post(
+      subgraphUrl,
+      {
+        query: queryTopPools,
+        variables: { first: 8 },
+      },
+      { timeout: 5000, validateStatus: () => true }
+    );
+    const rows = data?.data?.pools || [];
+    if (!Array.isArray(rows)) return [];
     return rows.map((p) => ({
       id: p.id,
       name: `${p.token0.symbol}/${p.token1.symbol}`,
       feeTierBps: Number(p.feeTier),
       tvlUSD: Number(p.totalValueLockedUSD),
-      volume24hUSD: Number(p.volumeUSD), // approximation
+      volume24hUSD: Number(p.volumeUSD),
       apr: Number(p.feesUSD) > 0 && Number(p.totalValueLockedUSD) > 0 ? (Number(p.feesUSD) / Number(p.totalValueLockedUSD)) * 100 : 0,
     }));
   } catch {

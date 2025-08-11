@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { z } from "zod";
 import prices from "../services/prices.js";
 import tokens from "../services/tokens.js";
 import quotes from "../services/quotes.js";
@@ -30,40 +31,57 @@ router.get("/addresses", async (req, res) => {
   res.json({ items: data });
 });
 
+const quoteSchema = z.object({
+  fromToken: z.string().min(1),
+  toToken: z.string().min(1),
+  amount: z.string().regex(/^\d+(\.\d+)?$/),
+  chainId: z.coerce.number().default(1),
+});
 router.get("/quotes", async (req, res) => {
-  const { fromToken, toToken, amount, chainId } = req.query;
-  const data = await quotes.get({
-    fromToken: String(fromToken || ""),
-    toToken: String(toToken || ""),
-    amount: String(amount || ""),
-    chainId: Number(chainId || 1),
+  const parsed = quoteSchema.safeParse({
+    fromToken: req.query.fromToken,
+    toToken: req.query.toToken,
+    amount: req.query.amount,
+    chainId: req.query.chainId,
   });
+  if (!parsed.success) {
+    return res.status(400).json({ error: "invalid parameters", issues: parsed.error.issues });
+  }
+  const data = await quotes.get(parsed.data);
   res.json(data);
 });
 
+const approveSchema = z.object({
+  token: z.string().min(1),
+  spender: z.string().min(1),
+  amount: z.string().regex(/^\d+(\.\d+)?$/),
+  chainId: z.coerce.number().default(1),
+  from: z.string().min(1),
+});
 router.post("/approve", async (req, res) => {
-  const { token, spender, amount, chainId, from } = req.body || {};
-  const data = await tx.prepareApproval({
-    token: String(token || ""),
-    spender: String(spender || ""),
-    amount: String(amount || ""),
-    chainId: Number(chainId || 1),
-    from: String(from || ""),
-  });
+  const parsed = approveSchema.safeParse(req.body || {});
+  if (!parsed.success) {
+    return res.status(400).json({ error: "invalid parameters", issues: parsed.error.issues });
+  }
+  const data = await tx.prepareApproval(parsed.data);
   res.json(data);
 });
 
+const swapSchema = z.object({
+  fromToken: z.string().min(1),
+  toToken: z.string().min(1),
+  amount: z.string().regex(/^\d+(\.\d+)?$/),
+  minAmountOut: z.string().regex(/^\d+(\.\d+)?$/).optional().default("0"),
+  chainId: z.coerce.number().default(1),
+  from: z.string().min(1),
+  slippageBps: z.coerce.number().min(1).max(5000).default(50),
+});
 router.post("/swap", async (req, res) => {
-  const { fromToken, toToken, amount, minAmountOut, chainId, from, slippageBps } = req.body || {};
-  const data = await tx.prepareSwap({
-    fromToken: String(fromToken || ""),
-    toToken: String(toToken || ""),
-    amount: String(amount || ""),
-    minAmountOut: String(minAmountOut || ""),
-    chainId: Number(chainId || 1),
-    from: String(from || ""),
-    slippageBps: Number(slippageBps || 50),
-  });
+  const parsed = swapSchema.safeParse(req.body || {});
+  if (!parsed.success) {
+    return res.status(400).json({ error: "invalid parameters", issues: parsed.error.issues });
+  }
+  const data = await tx.prepareSwap(parsed.data);
   res.json(data);
 });
 
