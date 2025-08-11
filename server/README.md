@@ -5,6 +5,7 @@ Local development
 - npm ci
 - cp .env.example .env
 - npm run dev
+- If you prefer no auto-reload, use: npm run start
 
 Env
 - PORT: default 8787

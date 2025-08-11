@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node --env-file=.env --watch src/index.js",
-    "start": "node src/index.js",
+    "dev": "nodemon -r dotenv/config src/index.js",
+    "start": "node -r dotenv/config src/index.js",
     "lint": "eslint ."
   },
   "dependencies": {
@@ -19,5 +19,8 @@
     "rate-limiter-flexible": "^5.0.4",
     "zod": "^3.23.8",
     "node-cache": "^5.1.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
   }
 }
