@@ -76,54 +76,70 @@ class ProxyService:
         db: Session
     ) -> Dict[str, Any]:
         
-        token_cost = ProxyService.calculate_token_cost(endpoint, token_type)
-        
-        user_token = db.query(Token).filter(
-            Token.user_id == user.id,
-            Token.token_type == token_type
-        ).first()
-        
-        if not user_token or user_token.balance < token_cost:
-            raise ValueError(f"Insufficient {token_type.value} tokens. Required: {token_cost}, Available: {user_token.balance if user_token else 0}")
-        
-        seller_key = ProxyService.get_seller_key_for_user(user, token_type, db)
-        if not seller_key:
-            seller_key = ProxyService.get_available_seller(token_type, db)
+        try:
+            token_cost = ProxyService.calculate_token_cost(endpoint, token_type)
+            
+            user_token = db.query(Token).filter(
+                Token.user_id == user.id,
+                Token.token_type == token_type
+            ).first()
+            
+            if not user_token or user_token.balance < token_cost:
+                raise ValueError(f"Insufficient {token_type.value} tokens. Required: {token_cost}, Available: {user_token.balance if user_token else 0}")
+            
+            seller_key = ProxyService.get_seller_key_for_user(user, token_type, db)
             if not seller_key:
-                raise ValueError(f"No available sellers for {token_type.value} tokens")
-        
-        api_key = decrypt_api_key(seller_key.encrypted_api_key)
-        
-        proxy_headers = headers.copy() if headers else {}
-        if token_type == TokenType.OPENAI:
-            proxy_headers["Authorization"] = f"Bearer {api_key}"
-            proxy_headers["Content-Type"] = "application/json"
-            base_url = "https://api.openai.com/v1"
-        elif token_type == TokenType.ANTHROPIC:
-            proxy_headers["x-api-key"] = api_key
-            proxy_headers["Content-Type"] = "application/json"
-            proxy_headers["anthropic-version"] = "2023-06-01"
-            base_url = "https://api.anthropic.com/v1"
-        
-        async with httpx.AsyncClient() as client:
-            response = await client.request(
-                method=method,
-                url=f"{base_url}/{endpoint}",
-                headers=proxy_headers,
-                json=data
-            )
-        
-        if response.status_code == 200:
-            TransactionService.update_balance_with_history(
-                user_id=user.id,
-                token_type=token_type,
-                amount_change=-token_cost,
-                transaction_type=TransactionType.WITHDRAWAL,
-                db=db,
-                description=f"API call to {endpoint}"
-            )
-        
-        return {
-            "status_code": response.status_code,
-            "data": response.json() if response.status_code == 200 else {"error": response.text}
-        }
+                seller_key = ProxyService.get_available_seller(token_type, db)
+                if not seller_key:
+                    raise ValueError(f"No available sellers for {token_type.value} tokens")
+            
+            print(f"DEBUG: Found seller key ID: {seller_key.id}, user_id: {seller_key.user_id}")
+            
+            try:
+                api_key = decrypt_api_key(seller_key.encrypted_api_key)
+                print(f"DEBUG: Successfully decrypted API key for {token_type.value}")
+            except Exception as decrypt_error:
+                print(f"DEBUG: Decryption failed: {decrypt_error}")
+                raise ValueError(f"Failed to decrypt API key: {decrypt_error}")
+            
+            proxy_headers = headers.copy() if headers else {}
+            if token_type == TokenType.OPENAI:
+                proxy_headers["Authorization"] = f"Bearer {api_key}"
+                proxy_headers["Content-Type"] = "application/json"
+                base_url = "https://api.openai.com/v1"
+            elif token_type == TokenType.ANTHROPIC:
+                proxy_headers["x-api-key"] = api_key
+                proxy_headers["Content-Type"] = "application/json"
+                proxy_headers["anthropic-version"] = "2023-06-01"
+                base_url = "https://api.anthropic.com/v1"
+            
+            print(f"DEBUG: Making request to {base_url}/{endpoint}")
+            
+            async with httpx.AsyncClient() as client:
+                response = await client.request(
+                    method=method,
+                    url=f"{base_url}/{endpoint}",
+                    headers=proxy_headers,
+                    json=data
+                )
+            
+            print(f"DEBUG: Response status: {response.status_code}")
+            
+            if response.status_code == 200:
+                TransactionService.update_balance_with_history(
+                    user_id=user.id,
+                    token_type=token_type,
+                    amount_change=-token_cost,
+                    transaction_type=TransactionType.WITHDRAWAL,
+                    db=db,
+                    description=f"API call to {endpoint}"
+                )
+            
+            return {
+                "status_code": response.status_code,
+                "data": response.json() if response.status_code == 200 else {"error": response.text}
+            }
+            
+        except Exception as e:
+            print(f"DEBUG: Proxy request failed with error: {e}")
+            raise e
