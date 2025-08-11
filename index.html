@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles/main.css">
     <link rel="stylesheet" href="styles/components.css">
     <link rel="stylesheet" href="styles/tokens.css">
+    <link rel="stylesheet" href="styles/auth.css">
 </head>
 <body>
     <main class="app">
@@ -74,10 +75,64 @@
                 </p>
             </footer>
         </div>
+        
+        <!-- Order Status Section -->
+        <div class="order-status-section">
+            <h3>Your Orders</h3>
+            <div id="ordersList" class="orders-list">
+                <!-- Orders will be populated here -->
+            </div>
+        </div>
     </main>
     
+    <!-- Authentication Modal -->
+    <div id="authModal" class="auth-modal hidden">
+        <div class="auth-modal-content">
+            <div class="auth-header">
+                <h2>Welcome to Tokenomics</h2>
+                <button class="auth-close" onclick="window.swapInterface?.hideAuthModal()">&times;</button>
+            </div>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">Login</button>
+                <button class="auth-tab" data-tab="register">Register</button>
+            </div>
+            
+            <form id="loginForm" class="auth-form">
+                <input type="text" id="loginUsername" placeholder="Username" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+            
+            <form id="registerForm" class="auth-form hidden">
+                <input type="text" id="registerUsername" placeholder="Username" required>
+                <input type="email" id="registerEmail" placeholder="Email" required>
+                <input type="password" id="registerPassword" placeholder="Password" required>
+                <div class="api-key-section">
+                    <h4>Add Your API Key (Optional)</h4>
+                    <select id="registerTokenType">
+                        <option value="">Select Token Type</option>
+                        <option value="openai">OpenAI</option>
+                        <option value="anthropic">Anthropic</option>
+                        <option value="google">Google</option>
+                        <option value="cohere">Cohere</option>
+                        <option value="mistral">Mistral</option>
+                    </select>
+                    <input type="password" id="registerApiKey" placeholder="API Key (optional)">
+                    <select id="registerUserType">
+                        <option value="seller">Seller (provide tokens)</option>
+                        <option value="buyer">Buyer (use tokens)</option>
+                    </select>
+                </div>
+                <button type="submit">Register</button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="scripts/api.js"></script>
     <script src="scripts/tokens.js"></script>
     <script src="scripts/swap.js"></script>
+    <script src="scripts/orders.js"></script>
     <script src="scripts/main.js"></script>
 </body>
 </html>

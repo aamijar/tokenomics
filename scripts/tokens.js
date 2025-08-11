@@ -132,6 +132,29 @@ const TOKENS = {
     }
 };
 
+// Token mapping between frontend symbols and backend enum values
+const TOKEN_MAPPING = {
+    'GPT': 'openai',
+    'CLU': 'anthropic', 
+    'GEM': 'google',
+    'COH': 'cohere',
+    'MIS': 'mistral'
+};
+
+class TokenMapper {
+    static frontendToBackend(frontendSymbol) {
+        return TOKEN_MAPPING[frontendSymbol];
+    }
+    
+    static backendToFrontend(backendValue) {
+        return Object.keys(TOKEN_MAPPING).find(key => TOKEN_MAPPING[key] === backendValue);
+    }
+    
+    static isSupported(frontendSymbol) {
+        return frontendSymbol in TOKEN_MAPPING;
+    }
+}
+
 // Exchange rate calculations
 class ExchangeCalculator {
     static calculateExchange(fromToken, toToken, amount) {
@@ -217,5 +240,5 @@ class TokenManager {
 
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { TOKENS, ExchangeCalculator, TokenManager };
+    module.exports = { TOKENS, ExchangeCalculator, TokenManager, TokenMapper };
 }
