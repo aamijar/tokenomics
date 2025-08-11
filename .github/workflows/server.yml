@@ -33,9 +33,11 @@ jobs:
         env:
           PORT: 8787
           CORS_ORIGIN: "*"
+          QUOTE_PROVIDER: mock
         run: |
           nohup npm run start > ci-server.log 2>&1 &
-          for i in {1..45}; do
+          sleep 2
+          for i in {1..60}; do
             sleep 1
             if curl -sf http://localhost:8787/health >/dev/null; then
               echo "Server healthy"
