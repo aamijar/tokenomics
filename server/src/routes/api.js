@@ -15,9 +15,13 @@ router.get("/tokens", async (_req, res) => {
 });
 
 router.get("/prices", async (req, res) => {
-  const ids = (req.query.ids || "").toString().split(",").filter(Boolean);
-  const data = await prices.markets(ids);
-  res.json(data);
+  try {
+    const ids = (req.query.ids || "").toString().split(",").filter(Boolean);
+    const data = await prices.markets(ids);
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e?.message || "failed to fetch prices" });
+  }
 });
 
 router.get("/addresses", async (req, res) => {
